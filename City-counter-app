@@ -1,0 +1,51 @@
+import React, { useState } from 'react';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+
+export default function CityCounter() {
+  const [letter, setLetter] = useState('');
+  const [count, setCount] = useState(null);
+  const [error, setError] = useState(null);
+
+  const fetchCityData = async () => {
+    if (!letter.match(/^[a-zA-Z]$/)) {
+      setError("Please enter a single alphabet character.");
+      setCount(null);
+      return;
+    }
+    setError(null);
+    try {
+      const res = await fetch('https://samples.openweathermap.org/data/2.5/box/city?bbox=12,32,15,37,10&appid=b6907d289e10d714a6e88b30761fae22');
+      const data = await res.json();
+      const filtered = data.list.filter(city => city.name.toLowerCase().startsWith(letter.toLowerCase()));
+      setCount(filtered.length);
+    } catch (err) {
+      setError("Failed to fetch city data.");
+      setCount(null);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen p-4">
+      <Card className="w-full max-w-md p-4">
+        <CardContent>
+          <h1 className="text-xl font-bold mb-4">City Name Counter</h1>
+          <Input
+            type="text"
+            maxLength={1}
+            value={letter}
+            onChange={e => setLetter(e.target.value)}
+            placeholder="Enter a letter"
+            className="mb-4"
+          />
+          <Button onClick={fetchCityData}>Count Cities</Button>
+          {error && <p className="text-red-500 mt-4">{error}</p>}
+          {count !== null && !error && (
+            <p className="text-green-700 mt-4">Number of cities starting with "{letter.toUpperCase()}": {count}</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
